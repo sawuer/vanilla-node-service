@@ -6,6 +6,7 @@ const { StringDecoder } = require('string_decoder');
 const { http_port, https_port } = require('./config');
 const trim_path = require('./utils/trim_path');
 const router = require('./routes');
+
 const http_server = http.createServer((req, res) => unified_server(req, res));
 const https_server = https.createServer({
   key: fs.readFileSync('./https/key.pem'),
@@ -29,11 +30,11 @@ function unified_server (req, res) {
 
   req.on('end', () => {
     buffer += decoder.end();
-    res.send = function (data) {
+    res.send = data => {
       res.end(JSON.stringify(data));
       return res;
     }
-    res.status = function (status_code) {
+    res.status = status_code => {
       res.writeHead(status_code);
       return res;
     }

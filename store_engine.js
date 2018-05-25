@@ -7,7 +7,6 @@ module.exports = {
 
   create (data_path, data) {
     return new Promise((resolve, reject) => {
-      console.log(this.base_dir + data_path.join('/') + '.json')
       return fs.open(this.base_dir + data_path.join('/') + '.json', 'wx', (err, file_desc) => {
         if (!err && file_desc) {
           return fs.writeFile(file_desc, JSON.stringify(data, null, 2), err => {
@@ -33,9 +32,9 @@ module.exports = {
 
   read (data_path) {
     return new Promise((resolve, reject) => {
-      fs.readFile(this.base_dir + JSON.parse(data_path).join('/') + '.json', 'utf8', (err, out) => {
+      return fs.readFile(this.base_dir + data_path.join('/') + '.json', 'utf8', (err, out) => {
         if (err) {
-          reject({
+          return reject({
             title: 'Not exists',
             actions: err.syscall,
             path: err.path,
@@ -50,7 +49,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       fs.unlink(this.base_dir + data_path.join('/') + '.json', (err) => {
         if (err) {
-          reject({
+          return reject({
             title: 'Not exists',
             actions: err.syscall,
             path: err.path,
