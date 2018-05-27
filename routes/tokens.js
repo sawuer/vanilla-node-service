@@ -18,10 +18,9 @@ module.exports = ({ query, method, body }, res) => {
             store.create(['tokens', body.userid], { token, interval }).then(() => {
               res.send(token);
             }, err => {
-              console.log(err);
               store.delete(['tokens', body.userid]).then(() => {
                 store.create(['tokens', body.userid], { token, interval }).then(() => {
-                  console.log('replace new token')
+                  console.log('Token replaced')
                   res.send(token);
                 });
               });
@@ -30,19 +29,19 @@ module.exports = ({ query, method, body }, res) => {
             res.status(404).send('Error: passwords are not equal');
           }
         }, err => {
-          res.status(404).send(err);
+          res.status(404).send(`Error: salt for this user ${body.userid} is not exists`);
         });
       }, err => {
-        res.status(404).send(err);
+        res.status(404).send('Error: user is not exists');
       });
 
 
     case 'GET':
 
-      return store.read(['tokens', query.userid]).then(({ token, interval }) => {
+      return store.read(['tokens', query.tokenid]).then(({ token, interval }) => {
         if (token == query.token) {
           if (interval > Date.now()) {
-            res.send('tokens are equal and valid');
+            res.send('Success: tokens are equal and valid');
           } else {
             res.status(404).send('Error: old token');
           }
@@ -50,7 +49,7 @@ module.exports = ({ query, method, body }, res) => {
           res.status(404).send('Error: tokens are not equal');
         }
       }, err => {
-        res.status(404).send(err);
+        res.status(404).send(`Error: token for user ${query.tokenid} not exists`);
       });
 
 
