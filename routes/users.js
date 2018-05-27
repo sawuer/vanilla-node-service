@@ -1,6 +1,6 @@
 const store = require('../store_engine');
 const hash = require('../utils/hash');
-const gen_salt = require('../utils/gen_salt');
+const gen_random_str = require('../utils/gen_random_str');
 const empty_fields = require('../utils/empty_fields');
 
 module.exports = ({ query, method, body: { data } }, res) => {
@@ -11,9 +11,9 @@ module.exports = ({ query, method, body: { data } }, res) => {
       if (empty_fields(data)) return res.status(402).send('You need fill all fields');
       if (typeof data.agreed !== 'boolean') return res.status(402).send('Agreed field must be boolean');
       if (!data.agreed) return res.status(402).send('You must be agree');
-      const salt = gen_salt(100);
+      const salt = gen_random_str(100);
 
-      return store.create(['users_salt', data.phone], { salt }).then(out => {
+      return store.create(['users_salt', data.phone], salt).then(out => {
         data.password = hash(data.password, salt);
         return store.create(['users', data.phone], data).then(out => {
           res.send(out);
@@ -38,7 +38,7 @@ module.exports = ({ query, method, body: { data } }, res) => {
       if (typeof data.agreed !== 'boolean') return res.status(402).send('Agreed field must be boolean');
       if (!data.agreed) return res.status(402).send('You must be agree');
 
-      return store.read(['users_salt', data.phone]).then(({ salt }) => {
+      return store.read(['users_salt', data.phone]).then(salt => {
         data.password = hash(data.password, salt);
         return store.update(['users', data.phone], data).then(out => {
           res.send(out);
@@ -50,8 +50,12 @@ module.exports = ({ query, method, body: { data } }, res) => {
 
     case 'DELETE':
       return store.delete(['users', query.userid]).then(out => {
-        return store.delete(['users_salt', query.userid]).then(out => {
-          res.send(out);
+        store.delete(['users_salt', query.userid]).then(out => {
+          store.delete(['tokens', query.userid]).then(out => {
+            res.send(out);
+          }, err => {
+            res.status(404).send(err);
+          });
         }, err => {
           res.status(404).send(err);
         });

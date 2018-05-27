@@ -42,6 +42,10 @@ function unified_server (req, res) {
 
     const route_handler = router[trimmed_path] ? router[trimmed_path] : router.notfound;
 
+    console.log('\n' + req.method + ' ' + parsed_url.pathname + 
+      '\nquery: ' + JSON.stringify(parsed_url.query) + 
+      '\nbody: ' + JSON.stringify(buffer ? JSON.parse(buffer) : {},))
+
     route_handler({
       trimmed_path,
       query: parsed_url.query,
